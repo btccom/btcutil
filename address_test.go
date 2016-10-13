@@ -12,8 +12,10 @@ import (
 	"testing"
 
 	"github.com/btcsuite/btcd/chaincfg"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil"
 	"golang.org/x/crypto/ripemd160"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 func TestAddresses(t *testing.T) {
@@ -460,6 +462,47 @@ func TestAddresses(t *testing.T) {
 			},
 			net: &chaincfg.TestNet3Params,
 		},
+		// P2WSH and P2WKH tests.
+		{
+			name:    "mainnet p2wkh",
+			addr:    "p2xtZoXeX5X8BP8JfFhQK2nD3emtjch7UeFm",
+			encoded: "p2xtZoXeX5X8BP8JfFhQK2nD3emtjch7UeFm",
+			valid:   true,
+			result: btcutil.TstAddressWitnessPubKeyHash(
+				[ripemd160.Size]byte{
+					0x01, 0x09, 0x66, 0x77, 0x60, 0x06, 0x95, 0x3d, 0x55, 0x67,
+					0x43, 0x9e, 0x5e, 0x39, 0xf8, 0x6a, 0xd, 0x27, 0x3b, 0xee},
+				chaincfg.MainNetParams.WitnessPubKeyHashAddrID),
+			f: func() (btcutil.Address, error) {
+				pkHash := []byte{
+					0x01, 0x09, 0x66, 0x77, 0x60, 0x06, 0x95, 0x3d, 0x55, 0x67,
+					0x43, 0x9e, 0x5e, 0x39, 0xf8, 0x6a, 0xd, 0x27, 0x3b, 0xee}
+				return btcutil.NewAddressWitnessPubKeyHash(pkHash, &chaincfg.MainNetParams)
+			},
+			net: &chaincfg.MainNetParams,
+		},
+		{
+			name:    "mainnet p2wsh",
+			addr:    "7XhQdzj6N7RBzBAy8zyeMzVwHZEjxpXZ24xXEM8cmwHNgNTi3Uo8C",
+			encoded: "7XhQdzj6N7RBzBAy8zyeMzVwHZEjxpXZ24xXEM8cmwHNgNTi3Uo8C",
+			valid:   true,
+			result: btcutil.TstAddressWitnessScriptHash(
+				[chainhash.HashSize]byte{
+					0x2b, 0xd8, 0x06, 0xc9, 0x7f, 0x0e, 0x00, 0xaf,
+					0x1a, 0x1f, 0xc3, 0x32, 0x8f, 0xa7, 0x63, 0xa9,
+					0x26, 0x97, 0x23, 0xc8, 0xdb, 0x8f, 0xac, 0x4f,
+					0x93, 0xaf, 0x71, 0xdb, 0x18, 0x6d, 0x6e, 0x90},
+				chaincfg.MainNetParams.WitnessScriptHashAddrID),
+			f: func() (btcutil.Address, error) {
+				scriptHash := []byte{
+					0x2b, 0xd8, 0x06, 0xc9, 0x7f, 0x0e, 0x00, 0xaf,
+					0x1a, 0x1f, 0xc3, 0x32, 0x8f, 0xa7, 0x63, 0xa9,
+					0x26, 0x97, 0x23, 0xc8, 0xdb, 0x8f, 0xac, 0x4f,
+					0x93, 0xaf, 0x71, 0xdb, 0x18, 0x6d, 0x6e, 0x90}
+				return btcutil.NewAddressWitnessScriptHashFromHash(scriptHash, &chaincfg.MainNetParams)
+			},
+			net: &chaincfg.MainNetParams,
+		},
 	}
 
 	for _, test := range tests {
@@ -502,6 +545,10 @@ func TestAddresses(t *testing.T) {
 				// Ignore the error here since the script
 				// address is checked below.
 				saddr, _ = hex.DecodeString(d.String())
+			case *btcutil.AddressWitnessPubKeyHash:
+				saddr = base58.Decode(encoded)[3 : 3+ripemd160.Size]
+			case *btcutil.AddressWitnessScriptHash:
+				saddr = base58.Decode(encoded)[3 : 3+chainhash.HashSize]
 			}
 
 			// Check script address, as well as the Hash160 method for P2PKH and
@@ -518,8 +565,13 @@ func TestAddresses(t *testing.T) {
 						test.name, saddr, h)
 					return
 				}
-
 			case *btcutil.AddressScriptHash:
+				if h := a.Hash160()[:]; !bytes.Equal(saddr, h) {
+					t.Errorf("%v: hashes do not match:\n%x != \n%x",
+						test.name, saddr, h)
+					return
+				}
+			case *btcutil.AddressWitnessPubKeyHash:
 				if h := a.Hash160()[:]; !bytes.Equal(saddr, h) {
 					t.Errorf("%v: hashes do not match:\n%x != \n%x",
 						test.name, saddr, h)

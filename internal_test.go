@@ -13,6 +13,7 @@ package btcutil
 
 import (
 	"github.com/btcsuite/btcd/btcec"
+	"github.com/btcsuite/btcd/chaincfg/chainhash"
 	"github.com/btcsuite/btcutil/base58"
 	"golang.org/x/crypto/ripemd160"
 )
@@ -49,6 +50,25 @@ func TstAddressScriptHash(hash [ripemd160.Size]byte,
 	return &AddressScriptHash{
 		hash:  hash,
 		netID: netID,
+	}
+}
+
+func TstAddressWitnessScriptHash(hash [chainhash.HashSize]byte,
+	netID byte) *AddressWitnessScriptHash {
+
+	return &AddressWitnessScriptHash{
+		scriptHash:     hash,
+		netID:          netID,
+		witnessVersion: 0x0,
+	}
+}
+
+func TstAddressWitnessPubKeyHash(hash [ripemd160.Size]byte,
+	netID byte) *AddressWitnessPubKeyHash {
+
+	return &AddressWitnessPubKeyHash{
+		pubKeyHash: hash,
+		netID:      netID,
 	}
 }
 
