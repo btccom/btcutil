@@ -45,8 +45,16 @@ func Decode(b string) []byte {
 	return val
 }
 
-// Encode encodes a byte slice to a modified base58 string.
 func Encode(b []byte) string {
+	return FastEncode(b)
+}
+
+func FastEncode(b []byte) string {
+	return FastBase58Encoding(b)
+}
+
+// Encode encodes a byte slice to a modified base58 string.
+func SlowEncode(b []byte) string {
 	x := new(big.Int)
 	x.SetBytes(b)
 
