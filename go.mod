@@ -15,4 +15,4 @@ require (
 	gopkg.in/check.v1 v1.0.0-20201130134442-10cb98267c6c // indirect
 )
 
-replace github.com/btcsuite/btcd => github.com/btccom/btcd v0.0.0-20210520085239-5b8aab39eae7
+replace github.com/btcsuite/btcd => github.com/btccom/btcd v0.0.0-20210520090712-daa153b63453
