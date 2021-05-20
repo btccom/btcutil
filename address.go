@@ -140,11 +140,8 @@ func DecodeAddress(addr string, defaultNet *chaincfg.Params) (Address, error) {
 	// one of the prefixes for the known networks, we try to decode it as
 	// a segwit address.
 	oneIndex := strings.LastIndexByte(addr, '1')
-	// register chaincfg params
-	err := chaincfg.Register(defaultNet)
-	if err != nil {
-		return nil, err
-	}
+	// register bech32_hrp params
+	_ = chaincfg.RegisterBech32SegwitPrefixes(defaultNet)
 	
 	if oneIndex > 1 {
 		prefix := addr[:oneIndex+1]
